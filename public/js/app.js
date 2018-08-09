@@ -27316,7 +27316,16 @@ new Vue({
 
         //EDIT KEEP
         updateKeep: function (id) {
-            alert('HOLAAAAAAAAAAAAAAA@@')
+            let url = 'tasks/' + id;
+            axios.put(url, this.fillKeep).then(response => {
+                this.getKeeps();
+                this.fillKeep= {'id': '', 'keep': ''};
+                this.errors  = [];
+                $("#edit").modal('hide');
+                toastr.success("Actualizado Correctamente")
+            }).catch(error => {
+                this.errors = error.response.data;
+            })
         },
 
         //DELETE KEEP
