@@ -6,23 +6,67 @@ new Vue({
 
     data:{
         keeps   : [],
+        pagination: {
+            'total'         : 0,
+            'current_page'  : 0,
+            'per_page'      : 0,
+            'last_page'     : 0,
+            'from'          : 0,
+            'to'            : 0
+        },
         newKeep : '',
         fillKeep: {'id': '', 'keep': ''},
         errors  : []
     },
 
+    computed :{
+
+        //CURRENT ACTIVE PAGE
+        isActived: function () {
+            return this.pagination.current_page;
+        },
+
+        //CALCULATE ITEMS TO VIEW
+        pagesNumber: function () {
+            
+            if (!this.pagination.to){
+                return [];
+            }
+
+            let from = this.pagination.current_page - 2; //TODO Offset
+            if (from < 1){
+                from = 1;
+            }
+
+            let to = from + ( 2 * 2); //TODO Offset
+            if (to >= this.pagination.last_page){
+                to = this.pagination.last_page;
+            }
+
+            let pagesArray = [];
+
+            while(from <= to){
+                pagesArray.push(from);
+                from ++;
+            }
+            return pagesArray;
+        }
+
+    },
+
     methods: {
 
         //GET ALL KEEP
-        getKeeps: function(){
-            let urlKeeps = "tasks";
+        getKeeps: function( page ){
+            let urlKeeps = "tasks?page="+page;
             axios.get(urlKeeps).then(response => {
-                this.keeps = response.data
-            })
+                this.keeps = response.data.tasks.data;
+                this.pagination = response.data.pagination;
+            });
         },
 
         //EDIT KEEP
-        editKeep: function (keep) {
+        editKeep: function ( keep ) {
             this.fillKeep.id = keep.id;
             this.fillKeep.keep = keep.keep;
 
@@ -30,7 +74,7 @@ new Vue({
         },
 
         //EDIT KEEP
-        updateKeep: function (id) {
+        updateKeep: function ( id ) {
             let url = 'tasks/' + id;
             axios.put(url, this.fillKeep).then(response => {
                 this.getKeeps();
@@ -44,7 +88,7 @@ new Vue({
         },
 
         //DELETE KEEP
-        deleteKeep: function(keep){
+        deleteKeep: function( keep ){
             let url = 'tasks/' + keep.id;
             axios.delete(url).then(response => {
                 this.getKeeps();
@@ -68,6 +112,12 @@ new Vue({
             });
         },
 
+        //CHANGE PAGE
+        changePage: function ( page ) {
+            this.pagination.current_page = page;
+            this.getKeeps( page );
+
+        }
 
     }
 });
